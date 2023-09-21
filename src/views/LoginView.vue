@@ -1,37 +1,40 @@
 <template>
   <div class="login-page">
     <el-card class="login-card">
+      <!-- logo图案 -->
       <div class="logo-wrapper">
         <img src="../assets/companylogo.png" alt="PSBC Logo" width="80%">
       </div>
+
       <el-form class="form" :model="form" :rules="rules" ref="loginForm">
 
+        <!-- 姓名 -->
         <el-form-item prop="name">
           <el-input v-model="form.name" placeholder="请输入姓名"></el-input>
         </el-form-item>
 
-        <el-form-item prop="idCard">
-          <el-input v-model="form.idCard" placeholder="请输入身份证号"></el-input>
+        <!-- 身份证号 -->
+        <el-form-item prop="idNo">
+          <el-input v-model="form.idNo" placeholder="请输入身份证号"></el-input>
         </el-form-item>
 
 
-        <el-form-item prop="phoneNumber" class="phone-item">
-          <!-- <el-select v-model="form.phoneCode" slot="prepend" placeholder="+86" class="phone-select">
-              <el-option label="+86" value="86"></el-option>
-            </el-select> -->
-
-          <el-select v-model="value" placeholder="请选择" class="phone-select">
+        <!-- 手机号 -->
+        <el-form-item prop="mobileNo" class="phone-item">
+          <el-select v-model="phoneCode" placeholder="请选择" class="phone-select">
             <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
             </el-option>
           </el-select>
-          <el-input v-model="form.phoneNumber" placeholder="请输入手机号" class="phone-input"></el-input>
+          <el-input v-model="form.mobileNo" placeholder="请输入手机号" class="phone-input"></el-input>
         </el-form-item>
 
-        <el-form-item prop="verificationCode" class="code-item">
-          <el-input v-model="form.verificationCode" placeholder="请输入短信验证码" class="code-input"></el-input>
+        <!-- 短信验证码 -->
+        <el-form-item prop="captcha" class="code-item">
+          <el-input v-model="form.captcha" placeholder="请输入短信验证码" class="code-input"></el-input>
           <el-button class="code-btn" :disabled="disableCodeButton" @click="getCode">{{ codeButtonLabel }}</el-button>
         </el-form-item>
 
+        <!-- 登录按钮 -->
         <el-form-item>
           <el-button type="primary" :disabled="disableSubmitButton" @click="submitForm" class="loginbtn">登录</el-button>
         </el-form-item>
@@ -47,34 +50,40 @@ export default {
     return {
       form: {
         name: '',
-        idCard: '',
-        phoneCode: '86',
-        phoneNumber: '',
-        verificationCode: ''
+        idNo: '',
+        mobileNo: '',
+        captcha: ''
       },
+      phoneCode: '86',
       rules: {
         name: [
           { required: true, message: '请输入姓名', trigger: 'blur' }
         ],
-        idCard: [
+        idNo: [
           { required: true, message: '请输入身份证号', trigger: 'blur' }
         ],
-        phoneNumber: [
+        mobileNo: [
           { required: true, message: '请输入手机号', trigger: 'blur' }
         ],
-        verificationCode: [
+        captcha: [
           { required: true, message: '请输入短信验证码', trigger: 'blur' }
         ]
       },
       disableCodeButton: false,
       codeButtonLabel: '获取验证码',
-      disableSubmitButton: true,
+      disableSubmitButton: false,
       options: [{
         value: '+86(中国大陆)',
         label: '+86(中国大陆)'
       }, {
-        value: '选项1',
-        label: '黄金糕'
+        value: '+852(中国香港)',
+        label: '+852(中国香港)'
+      }, {
+        value: '+853(中国澳门)',
+        label: '+852(中国澳门)'
+      }, {
+        value: '+886(中国台湾)',
+        label: '+886(中国台湾)'
       }],
       value: '+86(中国大陆)'
     }
@@ -90,7 +99,21 @@ export default {
       }, 60000)
     },
     submitForm() {
-      // TODO: 实现提交表单的逻辑
+
+      this.$http.post("https://9ea732a8-8108-4055-8829-c72710d139ee.mock.pstmn.io/login", this.form).then((resp) => {
+        console.log(resp);
+        let data = resp.data.data;
+        let userName = data.userName;
+        let shareId = data.shareId;
+
+        console.log(userName);
+        console.log(shareId);
+
+        // 把参数也传入进去，进入分享二维码页面
+        // this.$router.push()
+      }).catch((err) => {
+        this.$message.error('oops！出错了！');
+      })
     }
   }
 }

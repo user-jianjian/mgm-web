@@ -11,17 +11,6 @@
 
 <script>
   export default {
-    data() {
-      return {
-        'name': 'zhangsan',
-      }
-    },
-    mounted() {
-      console.log("this: ", this);
-    },
-    components: {
-      
-    }
   }
 </script>
 

@@ -1,18 +1,29 @@
 <template>
   <div>
     <div class="root">
+
+      <!-- 背景海报图片 -->
+      <img :src="moveDetailsURL" width="100%">
+
+      <!-- 地址下拉框 -->
       <el-select v-model="selectedCity" class="address-select" placeholder="请选择地址">
-        <el-option label="北京" value="北京"></el-option>
-        <el-option label="上海" value="上海"></el-option>
-        <el-option label="广州" value="广州"></el-option>
-        <el-option label="合肥" value="合肥"></el-option>
+        <el-option label="北京" value="beijing"></el-option>
+        <el-option label="合肥" value="hefei"></el-option>
+        <el-option label="上海" value="shanghai"></el-option>
+        <el-option label="广州" value="guangzhou"></el-option>
       </el-select>
+
+      <!-- 立刻推荐按钮 -->
       <button class="recommend-button" @click="goToLogin">立刻推荐</button>
+
+      <!-- 活动细则 -->
       <button class="rules-button" @click="showRules">活<br>动<br>细<br>则</button>
+
     </div>
 
+    <!-- 活动细则弹出框 -->
     <el-dialog :visible.sync="dialogVisible" title="活动细则" width="80%">
-      <div v-html="rulesContent"></div>
+      <div v-html="moveRules"></div>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">关闭</el-button>
       </div>
@@ -24,44 +35,55 @@
 export default {
   data() {
     return {
-      selectedCity: '北京',
+      selectedCity: 'beijing',
       dialogVisible: false,
-      rulesContent: ''
+      moveDetailsURL: '',
+      moveRules: '',
     }
   },
+
+  watch: {
+    selectedCity(newVal, oldVal) {
+      this.$http.post("https://9ea732a8-8108-4055-8829-c72710d139ee.mock.pstmn.io/getMove", {
+        location: newVal
+      }).then((resp) => {
+        let data = resp.data.data;
+        this.moveDetailsURL = data.moveDetailsURL;
+        this.moveRules = this.convertTextToHtml(data.moveRules);
+      })
+    }
+  },
+
+  created() {
+    this.$http.post("https://9ea732a8-8108-4055-8829-c72710d139ee.mock.pstmn.io/getMove", {
+      location: this.selectedCity
+    }).then((resp) => {
+      let data = resp.data.data;
+      this.moveDetailsURL = data.moveDetailsURL;
+      this.moveRules = this.convertTextToHtml(data.moveRules);
+    })
+  },
+
   methods: {
     goToLogin() {
-      console.log("go to login ...");
       this.$router.push('/login');
     },
     showRules() {
-      // 发送 AJAX 请求获取活动细则信息
-      // fetch('/api/rules')
-      //   .then(response => response.text())
-      //   .then(data => {
-      //     // 将活动细则信息保存到组件数据中
-      //     this.rulesContent = data
-      //     // 打开弹窗
-      //     this.dialogVisible = true
-      //   })
-      //   .catch(error => console.error(error))
-
-      this.rulesContent = "1. 参与条件：推荐人需为我行信用卡用户，持有至少一张我行信用卡，卡片状态正常，且不在黑名单中。2. 参与方法：推荐人点击“立即推荐”生成推荐二维码，被推荐人扫码跳转办卡页面，图片可保存，二维码在活动中有效期为30天，过期需在活动页面重新生成。\n3. 注意事项：活动参与地区为生成二维码时所在地区的活动，活动结束后二维码失效，新活动上线后需要重新生成。4. 奖励领取条件：新客户开卡成功后，完成激活首刷，即可领取。"
       this.dialogVisible = true;
+    },
+    convertTextToHtml(text) {
+      // 将文本中的每个换行符替换为HTML换行标签和<p>标签
+      const html = text.split('\n').map(paragraph => `<p>${paragraph.trim()}</p>`).join('');
+      // 将所有段落字符串包含在一个<div>标签中，并删除所有空白字符
+      const wrappedHtml = `<div style="text-align: left">${html.replace(/\s+/g, '')}</div>`;
+      // 返回转换后的HTML
+      return wrappedHtml;
     }
   }
 }
 </script>
 
 <style>
-.root {
-  width: 100%;
-  background-image: url('../assets/activitydetail.png');
-  background-size: 100% auto;
-  background-position: center center;
-  aspect-ratio: 1125/2436;
-}
-
 .recommend-button {
   position: fixed;
   bottom: 0;
@@ -116,6 +138,4 @@ export default {
 .el-select-dropdown__item {
   color: #333;
 }
-
-
 </style>
