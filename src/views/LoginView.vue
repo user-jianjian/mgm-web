@@ -39,6 +39,11 @@
           <el-button type="primary" :disabled="disableSubmitButton" @click="submitForm" class="loginbtn">登录</el-button>
         </el-form-item>
 
+         <!-- <el-form-item>
+              <el-button type="primary" :disabled="disableSubmitButton" @click="submit" class="loginbtn">立即</el-button>
+        </el-form-item> -->
+
+
       </el-form>
     </el-card>
   </div>
@@ -98,9 +103,12 @@ export default {
         this.codeButtonLabel = '获取验证码'
       }, 60000)
     },
+    // submit(){
+    //     this.$router.push('/recommend');
+    // },
     submitForm() {
-
-      this.$http.post("https://9ea732a8-8108-4055-8829-c72710d139ee.mock.pstmn.io/login", this.form).then((resp) => {
+        this.$router.push('/recommend');
+        this.$http.post("https://9ea732a8-8108-4055-8829-c72710d139ee.mock.pstmn.io/login", this.form).then((resp) => {
         console.log(resp);
         let data = resp.data.data;
         let userName = data.userName;
@@ -108,6 +116,8 @@ export default {
 
         console.log(userName);
         console.log(shareId);
+
+         
 
         // 把参数也传入进去，进入分享二维码页面
         // this.$router.push()
