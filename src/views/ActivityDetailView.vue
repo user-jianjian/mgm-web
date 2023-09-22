@@ -6,19 +6,20 @@
       <img :src="moveDetailsURL" width="100%">
 
       <!-- 地址下拉框 -->
-      <el-select v-model="selectedCity" class="address-select" placeholder="请选择地址">
+      <el-select v-model="selectedCity" class="address-select" placeholder="请选择地址" size="mini">
         <el-option label="北京" value="beijing"></el-option>
         <el-option label="合肥" value="hefei"></el-option>
         <el-option label="上海" value="shanghai"></el-option>
         <el-option label="广州" value="guangzhou"></el-option>
       </el-select>
 
+
+
       <!-- 立刻推荐按钮 -->
       <button class="recommend-button" @click="goToLogin">立刻推荐</button>
 
       <!-- 活动细则 -->
       <button class="rules-button" @click="showRules">活<br>动<br>细<br>则</button>
-
     </div>
 
     <!-- 活动细则弹出框 -->
@@ -39,34 +40,51 @@ export default {
       dialogVisible: false,
       moveDetailsURL: '',
       moveRules: '',
+      moveId: "1",
+      loading: false
     }
   },
 
   watch: {
     selectedCity(newVal, oldVal) {
+      const loading = this.$loading({
+        lock: true,
+        text: '活动加载中，请稍后...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.7)'
+      });
       this.$http.post("https://9ea732a8-8108-4055-8829-c72710d139ee.mock.pstmn.io/getMove", {
         location: newVal
       }).then((resp) => {
         let data = resp.data.data;
         this.moveDetailsURL = data.moveDetailsURL;
         this.moveRules = this.convertTextToHtml(data.moveRules);
+        this.moveId = data.moveId;
+        loading.close();
       })
     }
   },
 
   created() {
+    const loading = this.$loading({
+      lock: true,
+      text: '活动加载中，请稍后...',
+      spinner: 'el-icon-loading',
+      background: 'rgba(0, 0, 0, 0.7)'
+    });
     this.$http.post("https://9ea732a8-8108-4055-8829-c72710d139ee.mock.pstmn.io/getMove", {
       location: this.selectedCity
     }).then((resp) => {
       let data = resp.data.data;
       this.moveDetailsURL = data.moveDetailsURL;
       this.moveRules = this.convertTextToHtml(data.moveRules);
+      loading.close();
     })
   },
 
   methods: {
     goToLogin() {
-      this.$router.push('/login');
+      this.$router.push({ name: 'login', params: { moveId: this.moveId } });
     },
     showRules() {
       this.dialogVisible = true;
@@ -123,19 +141,29 @@ export default {
 
 .address-select {
   width: 20%;
+  height: 5%;
   border-radius: 5px;
   position: absolute !important;
-  top: 2%;
-  right: 2%;
+  top: 2.5%;
+  right: 10%;
+  /* opacity: 0.5; */
 }
 
-.el-select-dropdown .el-select-dropdown__item.selected,
-.el-select-dropdown .el-select-dropdown__item:hover {
+.address-select input[type="text"] {
   background-color: transparent;
-  color: #333;
+  opacity: 1;
+  color: white;
 }
 
-.el-select-dropdown__item {
-  color: #333;
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
 }
 </style>

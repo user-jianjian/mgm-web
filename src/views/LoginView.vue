@@ -39,11 +39,6 @@
           <el-button type="primary" :disabled="disableSubmitButton" @click="submitForm" class="loginbtn">登录</el-button>
         </el-form-item>
 
-         <!-- <el-form-item>
-              <el-button type="primary" :disabled="disableSubmitButton" @click="submit" class="loginbtn">立即</el-button>
-        </el-form-item> -->
-
-
       </el-form>
     </el-card>
   </div>
@@ -53,27 +48,33 @@
 export default {
   data() {
     return {
+
       form: {
         name: '',
         idNo: '',
         mobileNo: '',
         captcha: ''
       },
-      phoneCode: '86',
+
+      phoneCode: '+86(中国大陆)',
+
       rules: {
         name: [
           { required: true, message: '请输入姓名', trigger: 'blur' }
         ],
         idNo: [
-          { required: true, message: '请输入身份证号', trigger: 'blur' }
+          { required: true, message: '请输入身份证号', trigger: 'blur' },
+          { validator: this.validateIdNo, trigger: 'blur' }
         ],
         mobileNo: [
-          { required: true, message: '请输入手机号', trigger: 'blur' }
+          { required: true, message: '请输入手机号', trigger: 'blur' },
+          { validator: this.validateMobileNo, trigger: 'blur' }
         ],
         captcha: [
           { required: true, message: '请输入短信验证码', trigger: 'blur' }
         ]
       },
+
       disableCodeButton: false,
       codeButtonLabel: '获取验证码',
       disableSubmitButton: false,
@@ -94,33 +95,66 @@ export default {
     }
   },
   methods: {
+
+
+    validateIdNo(rule, value, callback) {
+      if (value && !/^\d{18}$/.test(value)) {
+        callback(new Error('身份证号必须是18位数字'))
+      } else {
+        callback()
+      }
+    },
+
+    validateMobileNo(rule, value, callback) {
+      if (value && !/^\d{11}$/.test(value)) {
+        callback(new Error('手机号必须是11位数字'))
+      } else {
+        callback()
+      }
+    },
+
     getCode() {
       // TODO: 实现获取短信验证码的逻辑
       this.disableCodeButton = true
       this.codeButtonLabel = '60s后重试'
-      setTimeout(() => {
-        this.disableCodeButton = false
-        this.codeButtonLabel = '获取验证码'
-      }, 60000)
+      let countDown = 60
+      let timer = setInterval(() => {
+        countDown--
+        this.codeButtonLabel = `${countDown}s后重试`
+        if (countDown === 0) {
+          clearInterval(timer)
+          this.disableCodeButton = false
+          this.codeButtonLabel = '获取验证码'
+        }
+      }, 1000)
     },
-    // submit(){
-    //     this.$router.push('/recommend');
-    // },
+
+
+
     submitForm() {
-        this.$router.push('/recommend');
-        this.$http.post("https://9ea732a8-8108-4055-8829-c72710d139ee.mock.pstmn.io/login", this.form).then((resp) => {
-        console.log(resp);
-        let data = resp.data.data;
-        let userName = data.userName;
-        let shareId = data.shareId;
 
-        console.log(userName);
-        console.log(shareId);
+      // let userName = "zhangasan";
+      // this.$router.push({ name: 'recommend', params: { userName: userName } })
 
-         
+      let submitForm = {
+        "userName": this.form.name,
+        "idNo": this.form.idNo,
+        "mobileNo": this.form.mobileNo,
+        "moveId": this.$route.params.moveId,
+      };
 
-        // 把参数也传入进去，进入分享二维码页面
-        // this.$router.push()
+      this.$http.post("https://9ea732a8-8108-4055-8829-c72710d139ee.mock.pstmn.io/login", submitForm).then((resp) => {
+        if (resp.data.code == "000000") {
+          let data = resp.data.data;
+          let userName = data.userName;
+          let moveId = data.moveId;
+          let shareId = data.shareId;
+
+          // 把参数也传入进去，进入分享二维码页面
+          this.$router.push({ name: 'recommend', params: { userName: userName, moveId: moveId, shareId: shareId } });
+        } else {
+          this.$message.error(resp.data.message);
+        }
       }).catch((err) => {
         this.$message.error('oops！出错了！');
       })
